@@ -42,7 +42,7 @@ DesignSpace <- R6::R6Class("DesignSpace",
                    #' @examples
                    #' df <- nelder(~ ((int(2)*t(3)) > cl(3)) > ind(5))
                    #' df$int <- df$int - 1
-                   #' des <- Model$new(covariance = list(formula = ~ (1|gr(cl)) + (1|gr(cl*t)),
+                   #' des <- Model$new(covariance = list(formula = ~ (1|gr(cl)) + (1|gr(cl,t)),
                    #'                                    parameters = c(0.25,0.1)),
                    #'                  mean = list(formula = ~ int + factor(t) - 1,
                    #'                              parameters = rep(0,4)),
@@ -51,10 +51,13 @@ DesignSpace <- R6::R6Class("DesignSpace",
                    #'                  var_par = 1)
                    #' ds <- DesignSpace$new(des)
                    #' #add another design
-                   #' des2 <- des$clone(deep=TRUE)
-                   #' des2$covariance <- Covariance$new(data = df,
-                   #'                        formula = ~ (1|gr(cl)*ar1(t)),
-                   #'                        parameters = c(0.25,0.8))
+                   #' des2 <- Model$new(covariance = list(formula = ~ (1|gr(cl)) + (1|gr(cl,t)),
+                   #'                                    parameters = c(0.25,0.8)),
+                   #'                  mean = list(formula = ~ int + factor(t) - 1,
+                   #'                              parameters = rep(0,4)),
+                   #'                  data=df,
+                   #'                  family=gaussian(),
+                   #'                  var_par = 1)
                    #' ds$add(des2)
                    #' #report the size of the design
                    #' ds$n()
@@ -287,7 +290,12 @@ DesignSpace <- R6::R6Class("DesignSpace",
                      unique_exp_cond <- unique(self$experimental_condition)
                      for(i in 1:self$n()[[1]]){
                        for(j in unique_exp_cond){
-                         uncorr <- all(private$designs[[i]]$Sigma[which(self$experimental_condition==j),which(self$experimental_condition!=j)]==0)
+                         if(packageVersion('glmmrBase') < '0.3.0'){
+                           S <- private$designs[[i]]$Sigma
+                         } else {
+                           S <- private$designs[[i]]$Sigma()
+                         }
+                         uncorr <- all(S[which(self$experimental_condition==j),which(self$experimental_condition!=j)]==0)
                          if(!uncorr)break
                        }
                        if(!uncorr)break
@@ -302,8 +310,16 @@ DesignSpace <- R6::R6Class("DesignSpace",
                        for(j in unique_exp_cond){
                          datalist <- list()
                          for(k in 1:self$n()[[1]]){
-                           datalist[[k]] <- list(private$designs[[i]]$mean_function$X[self$experimental_condition==j,],
-                                                 private$designs[[i]]$Sigma[self$experimental_condition==j,self$experimental_condition==j])
+                           if(packageVersion('glmmrBase') < '0.3.0'){
+                             S <- private$designs[[i]]$Sigma
+                             datalist[[k]] <- list(private$designs[[i]]$mean_function$X[self$experimental_condition==j,],
+                                                   S[self$experimental_condition==j,self$experimental_condition==j])
+                           } else {
+                             S <- private$designs[[i]]$Sigma()
+                             datalist[[k]] <- list(private$designs[[i]]$mean$X[self$experimental_condition==j,],
+                                                   S[self$experimental_condition==j,self$experimental_condition==j])
+                           }
+                           
                          }
                          datahashes <- c(datahashes, digest::digest(datalist))
                        }
@@ -353,15 +369,18 @@ each condition will be reported below."))
                        
                        return(invisible(outlist))
                      } else {
+                       print("here 1")
                        #initialise from random starting index
-                       N <- private$designs[[1]]$mean_function$n()
+                       if(packageVersion('glmmrBase') < '0.3.0'){
+                         N <- private$designs[[1]]$mean_function$n()
+                       } else {
+                         N <- private$designs[[1]]$mean$n()
+                       }
                        X_list <- private$genXlist()
                        Z_list <- private$genZlist()
                        D_list <- private$genDlist()
-                       
                        #sig_list <- private$genSlist()
                        weights <- self$weights
-                       #rdmode <- 1#ifelse(robust_function=="weighted",1,0)
                        if(!is.null(rm_cols))
                        {
                          if(!is(rm_cols,"list"))stop("rm_cols should be a list")
@@ -423,11 +442,20 @@ each condition will be reported below."))
                        for(i in 1:length(X_list)){
                          X_list[[i]] <- X_list[[i]][idx.nodup,]
                          Z_list[[i]] <- Z_list[[i]][idx.nodup,]
-                         if(is.null(rm_cols)){
-                           w_diag[,i] <- Matrix::diag(private$designs[[i]]$.__enclos_env__$private$W)[idx.nodup]
+                         if(packageVersion('glmmrBase') < '0.3.0'){
+                           if(is.null(rm_cols)){
+                             w_diag[,i] <- Matrix::diag(private$designs[[i]]$.__enclos_env__$private$W)[idx.nodup]
+                           } else {
+                             w_diag[,i] <- Matrix::diag(private$designs[[i]]$.__enclos_env__$private$W)[-zero_idx][idx.nodup]
+                           }
                          } else {
-                           w_diag[,i] <- Matrix::diag(private$designs[[i]]$.__enclos_env__$private$W)[-zero_idx][idx.nodup]
+                           if(is.null(rm_cols)){
+                             w_diag[,i] <- Matrix::diag(private$designs[[i]]$w_matrix())[idx.nodup]
+                           } else {
+                             w_diag[,i] <- Matrix::diag(private$designs[[i]]$w_matrix())[-zero_idx][idx.nodup]
+                           }
                          }
+                         
                        }
                        
                        max_obs <- unname(table(row.hash))
@@ -501,7 +529,12 @@ each condition will be reported below."))
                        if(keep){
                          for(i in 1:self$n()[[1]]){
                            private$designs[[i]]$subset_rows(rows_in)
-                           ncol <- 1:ncol(private$designs[[i]]$mean_function$X)
+                           if(packageVersion('glmmrBase') < '0.3.0'){
+                             ncol <- 1:ncol(private$designs[[i]]$mean_function$X)
+                           } else {
+                             ncol <- 1:ncol(private$designs[[i]]$mean$X)
+                           }
+                           
                            if(!is.null(rm_cols))private$designs[[i]]$subset_cols(ncol[-rm_cols[[i]]])
                            private$designs[[i]]$check(verbose=FALSE)
                          }
@@ -526,14 +559,22 @@ each condition will be reported below."))
                    genXlist = function(){
                      X_list <- list()
                      for(i in 1:self$n()[[1]]){
-                       X_list[[i]] <- as.matrix(private$designs[[i]]$mean_function$X)
+                       if(packageVersion('glmmrBase') < '0.3.0'){
+                         X_list[[i]] <- as.matrix(private$designs[[i]]$mean_function$X)
+                       } else {
+                         X_list[[i]] <- as.matrix(private$designs[[i]]$mean$X)
+                       }
                      }
                      return(X_list)
                    },
                    genSlist = function(){
                      S_list <- list()
                      for(i in 1:self$n()[[1]]){
-                       S_list[[i]] <- as.matrix(private$designs[[i]]$Sigma)
+                       if(packageVersion('glmmrBase') < '0.3.0'){
+                         S_list[[i]] <- as.matrix(private$designs[[i]]$Sigma)
+                       } else {
+                         S_list[[i]] <- as.matrix(private$designs[[i]]$Sigma())
+                       }
                      }
                      return(S_list)
                    },
