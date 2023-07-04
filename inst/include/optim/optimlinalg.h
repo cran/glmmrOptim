@@ -3,19 +3,15 @@
 
 #include <cmath> 
 #include <RcppEigen.h>
-//#include <glmmr.h>
 #include "optimmaths.h"
 
 namespace glmmr {
 namespace algo {
 
-
-
 //removes index from square matrix
 inline Eigen::MatrixXd remove_one_many_mat(const Eigen::MatrixXd &A, 
                                            const Eigen::ArrayXi &i) {
   
-  int n = A.rows();
   Eigen::ArrayXi isort = i;
   std::sort(isort.data(),isort.data()+isort.size(), std::greater<int>());
   Eigen::MatrixXd A2 = A;
@@ -111,13 +107,5 @@ inline Eigen::ArrayXi uvec_minus(const Eigen::ArrayXi &v,
 }
 
 }
-
-
-
-
-
-
-
-
 
 #endif
