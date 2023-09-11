@@ -2,8 +2,8 @@ Package: glmmrOptim
 Type: Package
 Title: Approximate Optimal Experimental Designs Using Generalised
         Linear Mixed Models
-Version: 0.3.1
-Date: 2023-08-18
+Version: 0.3.2
+Date: 2023-09-11
 Authors@R: c(person("Sam", "Watson", email = "S.I.Watson@bham.ac.uk",
                   role = c("aut", "cre")),
              person("Yi", "Pan", email = "ypan1988@gmail.com",
@@ -30,6 +30,6 @@ Biarch: true
 Depends: R (>= 3.4.0), Matrix, glmmrBase
 SystemRequirements: GNU make
 Encoding: UTF-8
-Packaged: 2023-08-18 16:22:26 UTC; samue
+Packaged: 2023-09-11 10:17:06 UTC; samue
 Repository: CRAN
-Date/Publication: 2023-08-18 16:42:36 UTC
+Date/Publication: 2023-09-11 10:40:02 UTC
