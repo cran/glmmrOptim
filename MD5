@@ -1,9 +1,9 @@
-13c4faf2f072547768df5b51c9cc7200 *DESCRIPTION
+f707b1297ca529994877586844818e50 *DESCRIPTION
 a7d2e1a28869d4d6358d3fef8f7a6fb6 *NAMESPACE
-83633597423e519c5695c9326d27fc08 *R/R6designspace.R
+e5488cfa8a39eccf70dce4e97bbeda58 *R/R6designspace.R
 a7bd1272d22d18eb105357598909f8a8 *R/RcppExports.R
 510f618e09f25a42747aaf347df74863 *R/apportion.R
-11afa99cba42408352bb0bd893ce367e *build/partial.rdb
+a7a677bc0af3ee336b4395e0a0a52ac9 *build/partial.rdb
 f01e8357ca3e9280b4cd41d3481bd001 *inst/include/glmmrOptim.h
 d0a278dfbf39f10eac87a3c1dba40cbb *inst/include/optim/eigenext.h
 329eee37112ff2240eacd31bf662710c *inst/include/optim/optimclass.h
@@ -11,7 +11,7 @@ fbd8497648a23a728dbb93eced9298fe *inst/include/optim/optimdata.h
 37eec41142635feb24b1873dda48d2b1 *inst/include/optim/optimderivatives.h
 fd860360554a4e3b481513fda02eee2a *inst/include/optim/optimlinalg.h
 c03907f2f53627560ad5a1df7c5d6a96 *inst/include/optim/optimmaths.h
-3545b32646eeab48982217cda50594ab *man/DesignSpace.Rd
+9039d3b6dc058a268b04ea5cd62c31d9 *man/DesignSpace.Rd
 399e627b651c8dbdfd067d688c8f74f8 *man/apportion.Rd
 444b25925103092771d98e3805514d2d *man/glmmrOptim-package.Rd
 58c48675bd48307e3a7f6201981ff75e *man/setParallelOptim.Rd
